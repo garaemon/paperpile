@@ -24,6 +24,7 @@ type LibraryItem struct {
 	Pubtype string   `json:"pubtype"`
 	Citekey string   `json:"citekey"`
 	Trashed int      `json:"trashed"`
+	Notes   string   `json:"note"`
 }
 
 // FormatFirstAuthor returns a readable first author string.

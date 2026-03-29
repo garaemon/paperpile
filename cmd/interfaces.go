@@ -26,3 +26,13 @@ type PDFUploader interface {
 type FileAttacher interface {
 	AttachFile(itemID, filePath string) (string, error)
 }
+
+// NoteGetter retrieves a note from a library item.
+type NoteGetter interface {
+	GetNote(itemID string) (string, error)
+}
+
+// NoteUpdater updates a note on a library item.
+type NoteUpdater interface {
+	UpdateNote(itemID, note string) error
+}
