@@ -1,6 +1,6 @@
 package cmd
 
-import "github.com/garaemon/paperpile-cli/internal/api"
+import "github.com/garaemon/paperpile/internal/api"
 
 // LibraryFetcher fetches library items from Paperpile.
 type LibraryFetcher interface {

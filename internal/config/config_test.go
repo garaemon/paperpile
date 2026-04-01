@@ -20,7 +20,7 @@ func TestSaveAndGetSession(t *testing.T) {
 	viper.Reset()
 
 	tmpDir := t.TempDir()
-	configDir := filepath.Join(tmpDir, "paperpile-cli")
+	configDir := filepath.Join(tmpDir, "paperpile")
 
 	// Override HOME so resolveConfigDir points to our temp dir.
 	originalHome := os.Getenv("HOME")
@@ -61,7 +61,7 @@ func TestLoad_withExistingConfigFile(t *testing.T) {
 	viper.Reset()
 
 	tmpDir := t.TempDir()
-	configDir := filepath.Join(tmpDir, ".config", "paperpile-cli")
+	configDir := filepath.Join(tmpDir, ".config", "paperpile")
 	if err := os.MkdirAll(configDir, 0700); err != nil {
 		t.Fatalf("failed to create config dir: %v", err)
 	}
@@ -94,7 +94,7 @@ func TestSaveSession_createsConfigDir(t *testing.T) {
 	os.Setenv("HOME", tmpDir)
 	defer os.Setenv("HOME", originalHome)
 
-	configDir := filepath.Join(tmpDir, ".config", "paperpile-cli")
+	configDir := filepath.Join(tmpDir, ".config", "paperpile")
 	viper.SetConfigName(configFileName)
 	viper.SetConfigType(configFileType)
 	viper.AddConfigPath(configDir)

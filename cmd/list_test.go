@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/garaemon/paperpile-cli/internal/api"
+	"github.com/garaemon/paperpile/internal/api"
 )
 
 type mockLibraryFetcher struct {

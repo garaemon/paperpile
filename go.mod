@@ -1,4 +1,4 @@
-module github.com/garaemon/paperpile-cli
+module github.com/garaemon/paperpile
 
 go 1.26.1
 

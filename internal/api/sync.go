@@ -29,7 +29,7 @@ type SyncResponse struct {
 // pushSyncChanges sends local changes to the server via the Sync API.
 func (c *Client) pushSyncChanges(changes []map[string]any) (*SyncResponse, error) {
 	reqBody := syncRequest{
-		SyncClientID:   "paperpile-cli",
+		SyncClientID:   "paperpile",
 		LastServerSync: float64(time.Now().Unix()),
 		ClientChanges:  changes,
 	}

@@ -1,4 +1,4 @@
-BINARY := paperpile-cli
+BINARY := paperpile
 GO := go
 
 .PHONY: build clean lint test coverage fmt-check

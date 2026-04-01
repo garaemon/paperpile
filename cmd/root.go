@@ -3,12 +3,12 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/garaemon/paperpile-cli/internal/config"
+	"github.com/garaemon/paperpile/internal/config"
 	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "paperpile-cli",
+	Use:   "paperpile",
 	Short: "CLI tool for Paperpile",
 	Long:  "A command-line tool to upload, list, and delete references in Paperpile.",
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
@@ -19,7 +19,7 @@ var rootCmd = &cobra.Command{
 			return err
 		}
 		if config.GetSession() == "" {
-			return fmt.Errorf("not logged in. Run 'paperpile-cli login' first")
+			return fmt.Errorf("not logged in. Run 'paperpile login' first")
 		}
 		return nil
 	},

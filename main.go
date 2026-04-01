@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/garaemon/paperpile-cli/cmd"
+	"github.com/garaemon/paperpile/cmd"
 )
 
 func main() {

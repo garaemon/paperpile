@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	configDirName  = "paperpile-cli"
+	configDirName  = "paperpile"
 	configFileName = "config"
 	configFileType = "yaml"
 )

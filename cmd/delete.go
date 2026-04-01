@@ -5,8 +5,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/garaemon/paperpile-cli/internal/api"
-	"github.com/garaemon/paperpile-cli/internal/config"
+	"github.com/garaemon/paperpile/internal/api"
+	"github.com/garaemon/paperpile/internal/config"
 	"github.com/spf13/cobra"
 )
 

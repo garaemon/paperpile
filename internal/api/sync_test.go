@@ -24,8 +24,8 @@ func TestPushSyncChanges_success(t *testing.T) {
 			t.Fatalf("failed to unmarshal body: %v", err)
 		}
 
-		if reqBody["syncClientId"] != "paperpile-cli" {
-			t.Errorf("syncClientId = %v, want %q", reqBody["syncClientId"], "paperpile-cli")
+		if reqBody["syncClientId"] != "paperpile" {
+			t.Errorf("syncClientId = %v, want %q", reqBody["syncClientId"], "paperpile")
 		}
 
 		resp := SyncResponse{

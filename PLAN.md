@@ -87,7 +87,7 @@ Mutations (trash, star, edit metadata, etc.) are NOT done via REST — they go t
 **Request body:**
 ```json
 {
-  "syncClientId": "paperpile-cli",
+  "syncClientId": "paperpile",
   "last_server_sync": 1774737619.0,
   "clientChanges": [
     {
@@ -135,15 +135,15 @@ The user ID (`68CE82F6807411EA9B68A87FDE8EC746` format) is returned by `/api/use
 
 ### Approach: Bookmarklet + Local HTTP Server
 
-1. User runs `paperpile-cli login`.
+1. User runs `paperpile login`.
 2. CLI starts a local HTTP server on `localhost:18080` with a setup page.
 3. CLI opens the setup page in the browser.
 4. User drags a bookmarklet ("Paperpile: Send to CLI") to their bookmarks bar (one-time setup).
 5. User navigates to `app.paperpile.com` and clicks the bookmarklet.
 6. Bookmarklet extracts `plack_session` from `document.cookie` and POSTs it to `localhost:18080/callback`.
-7. CLI verifies the session via `/api/users/me`, saves it to `~/.config/paperpile-cli/config.yaml`, and shuts down.
+7. CLI verifies the session via `/api/users/me`, saves it to `~/.config/paperpile/config.yaml`, and shuts down.
 
-**Session refresh:** When the session expires, user re-runs `paperpile-cli login` and clicks the bookmarklet again.
+**Session refresh:** When the session expires, user re-runs `paperpile login` and clicks the bookmarklet again.
 
 ## 5. Development Phases
 
@@ -151,7 +151,7 @@ The user ID (`68CE82F6807411EA9B68A87FDE8EC746` format) is returned by `/api/use
 - [x] API research (upload flow)
 - [x] `go mod init`, Cobra setup
 - [x] Implement `login` command (local HTTP server + bookmarklet flow)
-- [x] Config file management (`~/.config/paperpile-cli/config.yaml`)
+- [x] Config file management (`~/.config/paperpile/config.yaml`)
 - [x] Implement `me` command (session validation)
 
 ### Phase 2: Upload Command
@@ -176,11 +176,11 @@ The user ID (`68CE82F6807411EA9B68A87FDE8EC746` format) is returned by `/api/use
 ## 6. Command Design
 
 ```
-paperpile-cli login                              # Start auth flow (bookmarklet)
-paperpile-cli me                                 # Show current user info
-paperpile-cli upload <file_path>                 # Upload a PDF
-paperpile-cli upload --allow-duplicates <file>   # Upload even if duplicate exists
-paperpile-cli list                               # List library items
-paperpile-cli list --trashed                     # Include trashed items
-paperpile-cli delete <item_id>                   # Move item to trash
+paperpile login                              # Start auth flow (bookmarklet)
+paperpile me                                 # Show current user info
+paperpile upload <file_path>                 # Upload a PDF
+paperpile upload --allow-duplicates <file>   # Upload even if duplicate exists
+paperpile list                               # List library items
+paperpile list --trashed                     # Include trashed items
+paperpile delete <item_id>                   # Move item to trash
 ```
