@@ -36,3 +36,8 @@ type NoteGetter interface {
 type NoteUpdater interface {
 	UpdateNote(itemID, note string) error
 }
+
+// FileDownloader downloads a file for a library item.
+type FileDownloader interface {
+	DownloadFile(itemID string) (*api.DownloadResult, error)
+}
