@@ -20,7 +20,7 @@ func init() {
 
 var downloadCmd = &cobra.Command{
 	Use:   "download <item_id>",
-	Short: "Download the PDF for a library item",
+	Short: "Download all attachments for a library item",
 	Args:  cobra.ExactArgs(1),
 	RunE:  runDownload,
 }
@@ -31,16 +31,23 @@ func runDownload(cmd *cobra.Command, args []string) error {
 }
 
 func execDownload(downloader FileDownloader, out io.Writer, itemID, outputDir string) error {
-	result, err := downloader.DownloadFile(itemID)
+	attachments, err := downloader.FindAttachmentsForItem(itemID)
 	if err != nil {
-		return fmt.Errorf("download failed: %w", err)
+		return fmt.Errorf("failed to find attachments: %w", err)
 	}
 
-	outputPath := filepath.Join(outputDir, result.Filename)
-	if err := os.WriteFile(outputPath, result.Data, 0644); err != nil {
-		return fmt.Errorf("failed to write file: %w", err)
-	}
+	for _, attachment := range attachments {
+		result, err := downloader.DownloadAttachment(attachment)
+		if err != nil {
+			return fmt.Errorf("failed to download %s: %w", attachment.Filename, err)
+		}
 
-	fmt.Fprintf(out, "Downloaded: %s\n", outputPath)
+		outputPath := filepath.Join(outputDir, result.Filename)
+		if err := os.WriteFile(outputPath, result.Data, 0644); err != nil {
+			return fmt.Errorf("failed to write file: %w", err)
+		}
+
+		fmt.Fprintf(out, "Downloaded: %s (%d bytes)\n", outputPath, len(result.Data))
+	}
 	return nil
 }

@@ -12,17 +12,26 @@ import (
 )
 
 type mockFileDownloader struct {
-	result *api.DownloadResult
-	err    error
+	attachments []api.AttachmentInfo
+	findErr     error
+	result      *api.DownloadResult
+	downloadErr error
 }
 
-func (m *mockFileDownloader) DownloadFile(itemID string) (*api.DownloadResult, error) {
-	return m.result, m.err
+func (m *mockFileDownloader) FindAttachmentsForItem(itemID string) ([]api.AttachmentInfo, error) {
+	return m.attachments, m.findErr
+}
+
+func (m *mockFileDownloader) DownloadAttachment(attachment api.AttachmentInfo) (*api.DownloadResult, error) {
+	return m.result, m.downloadErr
 }
 
 func TestExecDownload_success(t *testing.T) {
 	tmpDir := t.TempDir()
 	downloader := &mockFileDownloader{
+		attachments: []api.AttachmentInfo{
+			{ID: "att-1", PubID: "item-abc", Filename: "paper.pdf", MimeType: "application/pdf"},
+		},
 		result: &api.DownloadResult{
 			Data:     []byte("fake pdf"),
 			Filename: "paper.pdf",
@@ -49,9 +58,27 @@ func TestExecDownload_success(t *testing.T) {
 	}
 }
 
+func TestExecDownload_noAttachments(t *testing.T) {
+	downloader := &mockFileDownloader{
+		findErr: errors.New("no attachments found for item missing-item"),
+	}
+
+	var buf bytes.Buffer
+	err := execDownload(downloader, &buf, "missing-item", ".")
+	if err == nil {
+		t.Fatal("execDownload() expected error")
+	}
+	if !strings.Contains(err.Error(), "failed to find attachments") {
+		t.Errorf("error = %q, want to contain 'failed to find attachments'", err.Error())
+	}
+}
+
 func TestExecDownload_downloadError(t *testing.T) {
 	downloader := &mockFileDownloader{
-		err: errors.New("network error"),
+		attachments: []api.AttachmentInfo{
+			{ID: "att-1", PubID: "item-abc", Filename: "paper.pdf"},
+		},
+		downloadErr: errors.New("network error"),
 	}
 
 	var buf bytes.Buffer
@@ -59,7 +86,7 @@ func TestExecDownload_downloadError(t *testing.T) {
 	if err == nil {
 		t.Fatal("execDownload() expected error")
 	}
-	if !strings.Contains(err.Error(), "download failed") {
-		t.Errorf("error = %q, want to contain 'download failed'", err.Error())
+	if !strings.Contains(err.Error(), "failed to download") {
+		t.Errorf("error = %q, want to contain 'failed to download'", err.Error())
 	}
 }
