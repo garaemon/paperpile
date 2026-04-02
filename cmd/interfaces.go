@@ -47,22 +47,22 @@ type ItemLabelGetter interface {
 	GetItemLabelNames(itemID string) ([]string, error)
 }
 
-// TagAdder adds a tag to a library item by name.
-type TagAdder interface {
-	AddLabelByName(itemID, tagName string) error
+// LabelAdder adds a label to a library item by name.
+type LabelAdder interface {
+	AddLabelByName(itemID, labelName string) error
 }
 
-// TagRemover removes a tag from a library item by name.
-type TagRemover interface {
-	RemoveLabelByName(itemID, tagName string) error
+// LabelRemover removes a label from a library item by name.
+type LabelRemover interface {
+	RemoveLabelByName(itemID, labelName string) error
 }
 
-// TagCreator creates a new tag (label).
-type TagCreator interface {
+// LabelCreator creates a new label.
+type LabelCreator interface {
 	CreateLabel(name string) (string, error)
 }
 
-// TagDeleter deletes a tag (label) by name.
-type TagDeleter interface {
+// LabelDeleter deletes a label by name.
+type LabelDeleter interface {
 	DeleteLabel(name string) error
 }

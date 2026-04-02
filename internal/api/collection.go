@@ -21,7 +21,7 @@ type Collection struct {
 	Trashed        int    `json:"trashed"`
 }
 
-// IsLabel returns true if the collection is a label (tag).
+// IsLabel returns true if the collection is a label.
 func (c *Collection) IsLabel() bool {
 	return c.CollectionType == "label"
 }

@@ -88,7 +88,7 @@ func (c *Client) updateItemLabels(itemID string, labelIDs []string) error {
 	return nil
 }
 
-// CreateLabel creates a new label (tag) via the Sync API.
+// CreateLabel creates a new label via the Sync API.
 func (c *Client) CreateLabel(name string) (string, error) {
 	now := float64(time.Now().UnixMilli()) / 1000.0
 	labelID := uuid.New().String()
@@ -120,7 +120,7 @@ func (c *Client) CreateLabel(name string) (string, error) {
 	return labelID, nil
 }
 
-// DeleteLabel deletes a label (tag) by name via the Sync API.
+// DeleteLabel deletes a label by name via the Sync API.
 func (c *Client) DeleteLabel(name string) error {
 	labelID, err := c.ResolveLabelName(name)
 	if err != nil {
@@ -178,8 +178,8 @@ func (c *Client) GetItemLabelNames(itemID string) ([]string, error) {
 }
 
 // AddLabelByName adds a label to a library item, resolving the label by name.
-func (c *Client) AddLabelByName(itemID, tagName string) error {
-	labelID, err := c.ResolveLabelName(tagName)
+func (c *Client) AddLabelByName(itemID, labelName string) error {
+	labelID, err := c.ResolveLabelName(labelName)
 	if err != nil {
 		return err
 	}
@@ -187,8 +187,8 @@ func (c *Client) AddLabelByName(itemID, tagName string) error {
 }
 
 // RemoveLabelByName removes a label from a library item, resolving the label by name.
-func (c *Client) RemoveLabelByName(itemID, tagName string) error {
-	labelID, err := c.ResolveLabelName(tagName)
+func (c *Client) RemoveLabelByName(itemID, labelName string) error {
+	labelID, err := c.ResolveLabelName(labelName)
 	if err != nil {
 		return err
 	}
