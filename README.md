@@ -1,6 +1,6 @@
 # paperpile
 
-An **unofficial** command-line tool to upload, list, and delete references in [Paperpile](https://paperpile.com/).
+An **unofficial** command-line tool to upload, list, delete, tag, and annotate references in [Paperpile](https://paperpile.com/).
 
 Paperpile has no public API. This tool works by reverse-engineering the web app's internal endpoints.
 
@@ -98,6 +98,40 @@ paperpile attach <item_id> paper.pdf
 ```
 
 Attaches a PDF file to a library item that does not yet have a PDF, or adds an additional file to an existing item.
+
+### `note` - Manage notes on library items
+
+```bash
+# Get the note of an item
+paperpile note get <item_id>
+
+# Set the note of an item
+paperpile note set <item_id> <text>
+```
+
+### `tag` - Manage tags (labels)
+
+```bash
+# List all tags
+paperpile tag list
+
+# Show tags on an item
+paperpile tag get <item_id>
+
+# Add a tag to an item
+paperpile tag add <item_id> <tag_name>
+
+# Remove a tag from an item
+paperpile tag remove <item_id> <tag_name>
+
+# Create a new tag
+paperpile tag create <tag_name>
+
+# Delete a tag
+paperpile tag delete <tag_name>
+```
+
+Tags correspond to Paperpile's "labels" feature.
 
 ## Configuration
 
