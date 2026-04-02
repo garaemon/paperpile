@@ -8,14 +8,20 @@ import (
 
 	"github.com/garaemon/paperpile/internal/api"
 	"github.com/garaemon/paperpile/internal/config"
+	"github.com/garaemon/paperpile/internal/convert"
 	"github.com/spf13/cobra"
 )
 
 func init() {
+	noteGetCmd.Flags().BoolVar(&noteGetMarkdown, "markdown", false, "Display note as Markdown (converted from HTML)")
+	noteSetCmd.Flags().BoolVar(&noteSetMarkdown, "markdown", false, "Accept Markdown input and convert to HTML before saving")
 	noteCmd.AddCommand(noteGetCmd)
 	noteCmd.AddCommand(noteSetCmd)
 	rootCmd.AddCommand(noteCmd)
 }
+
+var noteGetMarkdown bool
+var noteSetMarkdown bool
 
 var noteCmd = &cobra.Command{
 	Use:   "note",
@@ -38,16 +44,16 @@ var noteSetCmd = &cobra.Command{
 
 func runNoteGet(cmd *cobra.Command, args []string) error {
 	client := api.NewClient(config.GetSession())
-	return execNoteGet(client, os.Stdout, args[0])
+	return execNoteGet(client, os.Stdout, args[0], noteGetMarkdown)
 }
 
 func runNoteSet(cmd *cobra.Command, args []string) error {
 	client := api.NewClient(config.GetSession())
 	noteText := strings.Join(args[1:], " ")
-	return execNoteSet(client, os.Stdout, args[0], noteText)
+	return execNoteSet(client, os.Stdout, args[0], noteText, noteSetMarkdown)
 }
 
-func execNoteGet(getter NoteGetter, out io.Writer, itemID string) error {
+func execNoteGet(getter NoteGetter, out io.Writer, itemID string, markdown bool) error {
 	note, err := getter.GetNote(itemID)
 	if err != nil {
 		return fmt.Errorf("failed to get note: %w", err)
@@ -56,11 +62,22 @@ func execNoteGet(getter NoteGetter, out io.Writer, itemID string) error {
 		fmt.Fprintln(out, "(no note)")
 		return nil
 	}
+	if markdown {
+		md, err := convert.HTMLToMarkdown(note)
+		if err != nil {
+			return fmt.Errorf("failed to convert note to markdown: %w", err)
+		}
+		fmt.Fprintln(out, md)
+		return nil
+	}
 	fmt.Fprintln(out, note)
 	return nil
 }
 
-func execNoteSet(updater NoteUpdater, out io.Writer, itemID, note string) error {
+func execNoteSet(updater NoteUpdater, out io.Writer, itemID, note string, markdown bool) error {
+	if markdown {
+		note = convert.MarkdownToHTML(note)
+	}
 	if err := updater.UpdateNote(itemID, note); err != nil {
 		return fmt.Errorf("failed to set note: %w", err)
 	}
