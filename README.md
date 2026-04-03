@@ -118,11 +118,11 @@ paperpile label list
 # Show labels on an item
 paperpile label get <item_id>
 
-# Add a label to an item
-paperpile label add <item_id> <label_name>
+# Assign a label to an item
+paperpile label assign <item_id> <label_name>
 
-# Remove a label from an item
-paperpile label remove <item_id> <label_name>
+# Unassign a label from an item
+paperpile label unassign <item_id> <label_name>
 
 # Create a new label
 paperpile label create <label_name>
