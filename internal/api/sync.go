@@ -16,6 +16,8 @@ type syncRequest struct {
 	SyncClientID   string           `json:"syncClientId"`
 	LastServerSync float64          `json:"last_server_sync,omitempty"`
 	ClientChanges  []map[string]any `json:"clientChanges,omitempty"`
+	SyncSession    string           `json:"syncSession,omitempty"`
+	Token          string           `json:"token,omitempty"`
 }
 
 // SyncResponse represents the response from POST /api/sync?v=3.
@@ -32,6 +34,7 @@ type SyncPullResponse struct {
 	SyncSession   string             `json:"syncSession"`
 	TotalChanges  int                `json:"totalServerChanges"`
 	ServerChanges []SyncServerChange `json:"serverChanges"`
+	Token         string             `json:"token"`
 }
 
 // SyncServerChange represents a single change record from the server.
@@ -81,11 +84,38 @@ func (c *Client) pushSyncChanges(changes []map[string]any) (*SyncResponse, error
 	return &syncResp, nil
 }
 
-// pullSyncData fetches all server data by syncing from timestamp 0.
+// pullSyncData fetches all server data by syncing from timestamp 0,
+// paginating with token until all changes are retrieved.
 func (c *Client) pullSyncData() (*SyncPullResponse, error) {
+	firstResp, err := c.fetchSyncPage("", "")
+	if err != nil {
+		return nil, err
+	}
+
+	allChanges := firstResp.ServerChanges
+	syncSession := firstResp.SyncSession
+	token := firstResp.Token
+
+	for len(allChanges) < firstResp.TotalChanges && token != "" {
+		pageResp, err := c.fetchSyncPage(syncSession, token)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch sync page: %w", err)
+		}
+		allChanges = append(allChanges, pageResp.ServerChanges...)
+		token = pageResp.Token
+	}
+
+	firstResp.ServerChanges = allChanges
+	return firstResp, nil
+}
+
+// fetchSyncPage fetches a single page of sync data from the server.
+func (c *Client) fetchSyncPage(syncSession, token string) (*SyncPullResponse, error) {
 	reqBody := syncRequest{
 		SyncClientID:   "paperpile-cli",
 		LastServerSync: 0,
+		SyncSession:    syncSession,
+		Token:          token,
 	}
 
 	jsonBody, err := json.Marshal(reqBody)
