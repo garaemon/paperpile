@@ -15,6 +15,7 @@ func init() {
 	labelCmd.AddCommand(labelListCmd)
 	labelCmd.AddCommand(labelGetCmd)
 	labelCmd.AddCommand(labelCreateCmd)
+	labelCmd.AddCommand(labelDeleteCmd)
 	rootCmd.AddCommand(labelCmd)
 }
 
@@ -82,6 +83,26 @@ func execLabelCreate(creator LabelCreator, out io.Writer, labelName string) erro
 		return fmt.Errorf("failed to create label: %w", err)
 	}
 	fmt.Fprintf(out, "Label %q created (ID: %s)\n", labelName, id)
+	return nil
+}
+
+var labelDeleteCmd = &cobra.Command{
+	Use:   "delete <label_name>",
+	Short: "Delete a label",
+	Args:  cobra.ExactArgs(1),
+	RunE:  runLabelDelete,
+}
+
+func runLabelDelete(cmd *cobra.Command, args []string) error {
+	client := api.NewClient(config.GetSession())
+	return execLabelDelete(client, os.Stdout, args[0])
+}
+
+func execLabelDelete(deleter LabelDeleter, out io.Writer, labelName string) error {
+	if err := deleter.DeleteLabel(labelName); err != nil {
+		return fmt.Errorf("failed to delete label: %w", err)
+	}
+	fmt.Fprintf(out, "Label %q deleted\n", labelName)
 	return nil
 }
 

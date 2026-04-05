@@ -139,6 +139,14 @@ paperpile label create <label_name>
 
 Creates a new label in your Paperpile library.
 
+### `label delete` - Delete a label
+
+```bash
+paperpile label delete <label_name>
+```
+
+Deletes a label from your Paperpile library.
+
 ## Configuration
 
 Session credentials are stored in `~/.config/paperpile/config.yaml`.
