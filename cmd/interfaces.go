@@ -51,3 +51,8 @@ type ItemLabelGetter interface {
 type LabelCreator interface {
 	CreateLabel(name string) (string, error)
 }
+
+// LabelUnassigner removes a label from a library item.
+type LabelUnassigner interface {
+	UnassignLabel(itemID, labelName string) error
+}

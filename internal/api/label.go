@@ -100,3 +100,52 @@ func (c *Client) CreateLabel(name string) (string, error) {
 	}
 	return labelID, nil
 }
+
+// UnassignLabel removes a label from a library item by name.
+// It resolves the label name to an ID, fetches the item's current labels,
+// verifies the label is assigned, removes it, and pushes the update via the Sync API.
+func (c *Client) UnassignLabel(itemID, labelName string) error {
+	labelID, err := c.ResolveLabelName(labelName)
+	if err != nil {
+		return err
+	}
+
+	currentLabelIDs, err := c.GetItemLabels(itemID)
+	if err != nil {
+		return err
+	}
+
+	found := false
+	var newLabelIDs []string
+	for _, id := range currentLabelIDs {
+		if id == labelID {
+			found = true
+		} else {
+			newLabelIDs = append(newLabelIDs, id)
+		}
+	}
+
+	if !found {
+		return fmt.Errorf("label %q is not assigned to item %s", labelName, itemID)
+	}
+
+	now := float64(time.Now().UnixMilli()) / 1000.0
+
+	changes := []map[string]any{
+		{
+			"mcollection": "LibraryItems",
+			"action":      "update",
+			"id":          itemID,
+			"timestamp":   now,
+			"data": map[string]any{
+				"labelIds": newLabelIDs,
+			},
+		},
+	}
+
+	_, err = c.pushSyncChanges(changes)
+	if err != nil {
+		return fmt.Errorf("failed to unassign label: %w", err)
+	}
+	return nil
+}

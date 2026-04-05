@@ -15,6 +15,7 @@ func init() {
 	labelCmd.AddCommand(labelListCmd)
 	labelCmd.AddCommand(labelGetCmd)
 	labelCmd.AddCommand(labelCreateCmd)
+	labelCmd.AddCommand(labelUnassignCmd)
 	rootCmd.AddCommand(labelCmd)
 }
 
@@ -82,6 +83,26 @@ func execLabelCreate(creator LabelCreator, out io.Writer, labelName string) erro
 		return fmt.Errorf("failed to create label: %w", err)
 	}
 	fmt.Fprintf(out, "Label %q created (ID: %s)\n", labelName, id)
+	return nil
+}
+
+var labelUnassignCmd = &cobra.Command{
+	Use:   "unassign <item_id> <label_name>",
+	Short: "Remove a label from a library item",
+	Args:  cobra.ExactArgs(2),
+	RunE:  runLabelUnassign,
+}
+
+func runLabelUnassign(cmd *cobra.Command, args []string) error {
+	client := api.NewClient(config.GetSession())
+	return execLabelUnassign(client, os.Stdout, args[0], args[1])
+}
+
+func execLabelUnassign(unassigner LabelUnassigner, out io.Writer, itemID, labelName string) error {
+	if err := unassigner.UnassignLabel(itemID, labelName); err != nil {
+		return fmt.Errorf("failed to unassign label: %w", err)
+	}
+	fmt.Fprintf(out, "Label %q unassigned from item %s\n", labelName, itemID)
 	return nil
 }
 
