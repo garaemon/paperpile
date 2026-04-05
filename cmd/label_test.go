@@ -160,3 +160,47 @@ func TestExecLabelCreate_error(t *testing.T) {
 		t.Fatal("execLabelCreate() expected error")
 	}
 }
+
+type mockLabelAssigner struct {
+	calledItemID    string
+	calledLabelName string
+	err             error
+}
+
+func (m *mockLabelAssigner) AssignLabel(itemID, labelName string) error {
+	m.calledItemID = itemID
+	m.calledLabelName = labelName
+	return m.err
+}
+
+func TestExecLabelAssign_success(t *testing.T) {
+	assigner := &mockLabelAssigner{}
+
+	var buf bytes.Buffer
+	err := execLabelAssign(assigner, &buf, "item-1", "ML")
+	if err != nil {
+		t.Fatalf("execLabelAssign() error: %v", err)
+	}
+
+	if assigner.calledItemID != "item-1" {
+		t.Errorf("calledItemID = %q, want %q", assigner.calledItemID, "item-1")
+	}
+	if assigner.calledLabelName != "ML" {
+		t.Errorf("calledLabelName = %q, want %q", assigner.calledLabelName, "ML")
+	}
+
+	output := buf.String()
+	if !strings.Contains(output, "ML") {
+		t.Errorf("output should mention label name, got: %s", output)
+	}
+}
+
+func TestExecLabelAssign_error(t *testing.T) {
+	assigner := &mockLabelAssigner{err: errors.New("assign failed")}
+
+	var buf bytes.Buffer
+	err := execLabelAssign(assigner, &buf, "item-1", "ML")
+	if err == nil {
+		t.Fatal("execLabelAssign() expected error")
+	}
+}
