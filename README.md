@@ -139,6 +139,14 @@ paperpile label create <label_name>
 
 Creates a new label in your Paperpile library.
 
+### `label assign` - Assign a label to a library item
+
+```bash
+paperpile label assign <item_id> <label_name>
+```
+
+Assigns an existing label to a library item.
+
 ## Configuration
 
 Session credentials are stored in `~/.config/paperpile/config.yaml`.

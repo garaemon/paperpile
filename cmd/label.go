@@ -15,6 +15,7 @@ func init() {
 	labelCmd.AddCommand(labelListCmd)
 	labelCmd.AddCommand(labelGetCmd)
 	labelCmd.AddCommand(labelCreateCmd)
+	labelCmd.AddCommand(labelAssignCmd)
 	rootCmd.AddCommand(labelCmd)
 }
 
@@ -82,6 +83,26 @@ func execLabelCreate(creator LabelCreator, out io.Writer, labelName string) erro
 		return fmt.Errorf("failed to create label: %w", err)
 	}
 	fmt.Fprintf(out, "Label %q created (ID: %s)\n", labelName, id)
+	return nil
+}
+
+var labelAssignCmd = &cobra.Command{
+	Use:   "assign <item_id> <label_name>",
+	Short: "Assign a label to a library item",
+	Args:  cobra.ExactArgs(2),
+	RunE:  runLabelAssign,
+}
+
+func runLabelAssign(cmd *cobra.Command, args []string) error {
+	client := api.NewClient(config.GetSession())
+	return execLabelAssign(client, os.Stdout, args[0], args[1])
+}
+
+func execLabelAssign(assigner LabelAssigner, out io.Writer, itemID, labelName string) error {
+	if err := assigner.AssignLabel(itemID, labelName); err != nil {
+		return fmt.Errorf("failed to assign label: %w", err)
+	}
+	fmt.Fprintf(out, "Label %q assigned to item %s\n", labelName, itemID)
 	return nil
 }
 
