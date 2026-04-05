@@ -51,3 +51,8 @@ type ItemLabelGetter interface {
 type LabelCreator interface {
 	CreateLabel(name string) (string, error)
 }
+
+// LabelDeleter deletes a label.
+type LabelDeleter interface {
+	DeleteLabel(labelName string) error
+}

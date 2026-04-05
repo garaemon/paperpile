@@ -196,3 +196,100 @@ func TestCreateLabel_serverError(t *testing.T) {
 		t.Fatal("CreateLabel() expected error for 500 response")
 	}
 }
+
+func TestDeleteLabel_success(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		if r.URL.Path == "/collections" {
+			collections := []Collection{
+				{ID: "label-1", Name: "ML", CollectionType: "label"},
+			}
+			json.NewEncoder(w).Encode(collections)
+			return
+		}
+		if r.URL.Path == "/sync" {
+			body, _ := io.ReadAll(r.Body)
+			var reqBody map[string]any
+			json.Unmarshal(body, &reqBody)
+
+			resp := SyncResponse{SyncStartTime: 1234567890.0}
+
+			changes, ok := reqBody["clientChanges"].([]any)
+			if !ok || len(changes) == 0 {
+				json.NewEncoder(w).Encode(resp)
+				return
+			}
+
+			change := changes[0].(map[string]any)
+
+			if change["mcollection"] != "Collections" {
+				t.Errorf("mcollection = %v, want %q", change["mcollection"], "Collections")
+			}
+			if change["action"] != "update" {
+				t.Errorf("action = %v, want %q", change["action"], "update")
+			}
+			if change["id"] != "label-1" {
+				t.Errorf("id = %v, want %q", change["id"], "label-1")
+			}
+
+			data := change["data"].(map[string]any)
+			trashed, ok := data["trashed"].(float64)
+			if !ok || trashed != 1 {
+				t.Errorf("trashed = %v, want 1", data["trashed"])
+			}
+
+			json.NewEncoder(w).Encode(resp)
+			return
+		}
+	}))
+	defer server.Close()
+
+	client := newTestClient(server)
+	err := client.DeleteLabel("ML")
+	if err != nil {
+		t.Fatalf("DeleteLabel() error: %v", err)
+	}
+}
+
+func TestDeleteLabel_labelNotFound(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if r.URL.Path == "/collections" {
+			json.NewEncoder(w).Encode([]Collection{})
+			return
+		}
+	}))
+	defer server.Close()
+
+	client := newTestClient(server)
+	err := client.DeleteLabel("Nonexistent")
+	if err == nil {
+		t.Fatal("DeleteLabel() expected error for nonexistent label")
+	}
+}
+
+func TestDeleteLabel_serverError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if r.URL.Path == "/collections" {
+			collections := []Collection{
+				{ID: "label-1", Name: "ML", CollectionType: "label"},
+			}
+			json.NewEncoder(w).Encode(collections)
+			return
+		}
+		if r.URL.Path == "/sync" {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("server error"))
+			return
+		}
+	}))
+	defer server.Close()
+
+	client := newTestClient(server)
+	err := client.DeleteLabel("ML")
+	if err == nil {
+		t.Fatal("DeleteLabel() expected error for 500 response")
+	}
+}
