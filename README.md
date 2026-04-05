@@ -131,6 +131,14 @@ paperpile label get <item_id>
 
 Prints the label names assigned to the item. If no labels are assigned, prints `(no labels)`.
 
+### `label create` - Create a new label
+
+```bash
+paperpile label create <label_name>
+```
+
+Creates a new label in your Paperpile library.
+
 ## Configuration
 
 Session credentials are stored in `~/.config/paperpile/config.yaml`.

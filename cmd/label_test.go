@@ -117,3 +117,46 @@ func TestExecLabelGet_error(t *testing.T) {
 		t.Fatal("execLabelGet() expected error")
 	}
 }
+
+type mockLabelCreator struct {
+	calledName string
+	returnedID string
+	err        error
+}
+
+func (m *mockLabelCreator) CreateLabel(name string) (string, error) {
+	m.calledName = name
+	return m.returnedID, m.err
+}
+
+func TestExecLabelCreate_success(t *testing.T) {
+	creator := &mockLabelCreator{returnedID: "new-id-123"}
+
+	var buf bytes.Buffer
+	err := execLabelCreate(creator, &buf, "NewLabel")
+	if err != nil {
+		t.Fatalf("execLabelCreate() error: %v", err)
+	}
+
+	if creator.calledName != "NewLabel" {
+		t.Errorf("calledName = %q, want %q", creator.calledName, "NewLabel")
+	}
+
+	output := buf.String()
+	if !strings.Contains(output, "NewLabel") {
+		t.Errorf("output should mention label name, got: %s", output)
+	}
+	if !strings.Contains(output, "new-id-123") {
+		t.Errorf("output should mention label ID, got: %s", output)
+	}
+}
+
+func TestExecLabelCreate_error(t *testing.T) {
+	creator := &mockLabelCreator{err: errors.New("sync failed")}
+
+	var buf bytes.Buffer
+	err := execLabelCreate(creator, &buf, "NewLabel")
+	if err == nil {
+		t.Fatal("execLabelCreate() expected error")
+	}
+}

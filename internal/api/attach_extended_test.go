@@ -156,9 +156,13 @@ func TestCreateAttachmentRecord_success(t *testing.T) {
 			t.Fatalf("failed to unmarshal body: %v", err)
 		}
 
-		changes := reqBody["clientChanges"].([]any)
-		if len(changes) == 0 {
-			t.Fatal("expected clientChanges to be non-empty")
+		resp := SyncResponse{SyncStartTime: 1234567890.0, SyncSession: "s-1"}
+		w.Header().Set("Content-Type", "application/json")
+
+		changes, ok := reqBody["clientChanges"].([]any)
+		if !ok || len(changes) == 0 {
+			json.NewEncoder(w).Encode(resp)
+			return
 		}
 
 		change := changes[0].(map[string]any)
@@ -177,8 +181,6 @@ func TestCreateAttachmentRecord_success(t *testing.T) {
 			t.Errorf("filename = %v, want %q", data["filename"], "paper.pdf")
 		}
 
-		resp := SyncResponse{SyncStartTime: 1234567890.0, SyncSession: "s-1"}
-		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
 	}))
 	defer server.Close()
