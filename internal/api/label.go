@@ -69,6 +69,33 @@ func (c *Client) ResolveLabelName(name string) (string, error) {
 	return "", fmt.Errorf("label %q not found", name)
 }
 
+// DeleteLabel deletes a label by marking it as trashed via the Sync API.
+func (c *Client) DeleteLabel(labelName string) error {
+	labelID, err := c.ResolveLabelName(labelName)
+	if err != nil {
+		return err
+	}
+
+	now := float64(time.Now().UnixMilli()) / 1000.0
+
+	changes := []map[string]any{
+		{
+			"mcollection": "Collections",
+			"action":      "update",
+			"id":          labelID,
+			"timestamp":   now,
+			"fields":      []string{"trashed", "updated"},
+			"data":        map[string]any{"trashed": 1, "updated": now},
+		},
+	}
+
+	_, err = c.pushSyncChanges(changes)
+	if err != nil {
+		return fmt.Errorf("failed to delete label: %w", err)
+	}
+	return nil
+}
+
 // CreateLabel creates a new label via the Sync API.
 func (c *Client) CreateLabel(name string) (string, error) {
 	now := float64(time.Now().UnixMilli()) / 1000.0

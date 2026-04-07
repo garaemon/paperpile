@@ -56,3 +56,8 @@ type LabelCreator interface {
 type LabelAssigner interface {
 	AssignLabel(itemID, labelName string) error
 }
+
+// LabelDeleter deletes a label.
+type LabelDeleter interface {
+	DeleteLabel(labelName string) error
+}

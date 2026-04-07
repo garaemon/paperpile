@@ -147,6 +147,14 @@ paperpile label assign <item_id> <label_name>
 
 Assigns an existing label to a library item.
 
+### `label delete` - Delete a label
+
+```bash
+paperpile label delete <label_name>
+```
+
+Deletes a label from your Paperpile library.
+
 ## Configuration
 
 Session credentials are stored in `~/.config/paperpile/config.yaml`.
