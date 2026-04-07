@@ -139,6 +139,14 @@ paperpile label create <label_name>
 
 Creates a new label in your Paperpile library.
 
+### `label unassign` - Remove a label from a library item
+
+```bash
+paperpile label unassign <item_id> <label_name>
+```
+
+Removes a label from a library item.
+
 ### `label assign` - Assign a label to a library item
 
 ```bash

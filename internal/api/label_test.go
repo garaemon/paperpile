@@ -197,6 +197,129 @@ func TestCreateLabel_serverError(t *testing.T) {
 	}
 }
 
+func TestUnassignLabel_success(t *testing.T) {
+	requestCount := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		if r.URL.Path == "/library" {
+			items := []LibraryItem{
+				{ID: "item-1", LabelIDs: []string{"label-1", "label-2"}},
+			}
+			json.NewEncoder(w).Encode(items)
+			return
+		}
+		if r.URL.Path == "/collections" {
+			collections := []Collection{
+				{ID: "label-1", Name: "ML", CollectionType: "label"},
+				{ID: "label-2", Name: "Robotics", CollectionType: "label"},
+			}
+			json.NewEncoder(w).Encode(collections)
+			return
+		}
+		if r.URL.Path == "/sync" {
+			body, _ := io.ReadAll(r.Body)
+			var reqBody map[string]any
+			json.Unmarshal(body, &reqBody)
+
+			resp := SyncResponse{SyncStartTime: 1234567890.0}
+
+			changes, ok := reqBody["clientChanges"].([]any)
+			if ok && len(changes) > 0 {
+				requestCount++
+				change := changes[0].(map[string]any)
+
+				if change["mcollection"] != "Library" {
+					t.Errorf("mcollection = %v, want %q", change["mcollection"], "Library")
+				}
+				if change["action"] != "update" {
+					t.Errorf("action = %v, want %q", change["action"], "update")
+				}
+				if change["id"] != "item-1" {
+					t.Errorf("id = %v, want %q", change["id"], "item-1")
+				}
+
+				fields, ok := change["fields"].([]any)
+				if !ok || len(fields) != 2 {
+					t.Errorf("fields = %v, want [labelIds updated]", change["fields"])
+				}
+
+				data := change["data"].(map[string]any)
+				labelIDs, ok := data["labelIds"].([]any)
+				if !ok {
+					t.Errorf("labelIds is not an array")
+				} else if len(labelIDs) != 1 {
+					t.Errorf("labelIds length = %d, want 1", len(labelIDs))
+				} else if labelIDs[0] != "label-2" {
+					t.Errorf("remaining labelId = %v, want %q", labelIDs[0], "label-2")
+				}
+				if _, ok := data["updated"].(float64); !ok {
+					t.Errorf("updated should be a float64, got %T", data["updated"])
+				}
+			}
+
+			json.NewEncoder(w).Encode(resp)
+			return
+		}
+	}))
+	defer server.Close()
+
+	client := newTestClient(server)
+	err := client.UnassignLabel("item-1", "ML")
+	if err != nil {
+		t.Fatalf("UnassignLabel() error: %v", err)
+	}
+	if requestCount != 1 {
+		t.Errorf("expected 1 sync request with changes, got %d", requestCount)
+	}
+}
+
+func TestUnassignLabel_labelNotFound(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if r.URL.Path == "/collections" {
+			json.NewEncoder(w).Encode([]Collection{})
+			return
+		}
+	}))
+	defer server.Close()
+
+	client := newTestClient(server)
+	err := client.UnassignLabel("item-1", "Nonexistent")
+	if err == nil {
+		t.Fatal("UnassignLabel() expected error for nonexistent label")
+	}
+}
+
+func TestUnassignLabel_labelNotAssigned(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		if r.URL.Path == "/library" {
+			items := []LibraryItem{
+				{ID: "item-1", LabelIDs: []string{"label-2"}},
+			}
+			json.NewEncoder(w).Encode(items)
+			return
+		}
+		if r.URL.Path == "/collections" {
+			collections := []Collection{
+				{ID: "label-1", Name: "ML", CollectionType: "label"},
+				{ID: "label-2", Name: "Robotics", CollectionType: "label"},
+			}
+			json.NewEncoder(w).Encode(collections)
+			return
+		}
+	}))
+	defer server.Close()
+
+	client := newTestClient(server)
+	err := client.UnassignLabel("item-1", "ML")
+	if err == nil {
+		t.Fatal("UnassignLabel() expected error when label is not assigned")
+	}
+}
+
 func TestAssignLabel_success(t *testing.T) {
 	requestCount := 0
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

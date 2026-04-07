@@ -161,6 +161,53 @@ func TestExecLabelCreate_error(t *testing.T) {
 	}
 }
 
+type mockLabelUnassigner struct {
+	calledItemID    string
+	calledLabelName string
+	err             error
+}
+
+func (m *mockLabelUnassigner) UnassignLabel(itemID, labelName string) error {
+	m.calledItemID = itemID
+	m.calledLabelName = labelName
+	return m.err
+}
+
+func TestExecLabelUnassign_success(t *testing.T) {
+	unassigner := &mockLabelUnassigner{}
+
+	var buf bytes.Buffer
+	err := execLabelUnassign(unassigner, &buf, "item-1", "ML")
+	if err != nil {
+		t.Fatalf("execLabelUnassign() error: %v", err)
+	}
+
+	if unassigner.calledItemID != "item-1" {
+		t.Errorf("calledItemID = %q, want %q", unassigner.calledItemID, "item-1")
+	}
+	if unassigner.calledLabelName != "ML" {
+		t.Errorf("calledLabelName = %q, want %q", unassigner.calledLabelName, "ML")
+	}
+
+	output := buf.String()
+	if !strings.Contains(output, "ML") {
+		t.Errorf("output should mention label name, got: %s", output)
+	}
+	if !strings.Contains(output, "item-1") {
+		t.Errorf("output should mention item ID, got: %s", output)
+	}
+}
+
+func TestExecLabelUnassign_error(t *testing.T) {
+	unassigner := &mockLabelUnassigner{err: errors.New("unassign failed")}
+
+	var buf bytes.Buffer
+	err := execLabelUnassign(unassigner, &buf, "item-1", "ML")
+	if err == nil {
+		t.Fatal("execLabelUnassign() expected error")
+	}
+}
+
 type mockLabelAssigner struct {
 	calledItemID    string
 	calledLabelName string
