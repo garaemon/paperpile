@@ -26,6 +26,7 @@ type LibraryItem struct {
 	Trashed  int      `json:"trashed"`
 	Notes    string   `json:"note"`
 	LabelIDs []string `json:"labelIds"`
+	Created  float64  `json:"created"`
 }
 
 // FormatFirstAuthor returns a readable first author string.

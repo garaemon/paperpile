@@ -41,7 +41,7 @@ func TestExecList_success(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	err := execList(fetcher, &buf, false)
+	err := execList(fetcher, &buf, false, "created")
 	if err != nil {
 		t.Fatalf("execList() error: %v", err)
 	}
@@ -70,7 +70,7 @@ func TestExecList_filtersTrashed(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	err := execList(fetcher, &buf, false)
+	err := execList(fetcher, &buf, false, "created")
 	if err != nil {
 		t.Fatalf("execList() error: %v", err)
 	}
@@ -93,7 +93,7 @@ func TestExecList_includesTrashed(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	err := execList(fetcher, &buf, true)
+	err := execList(fetcher, &buf, true, "created")
 	if err != nil {
 		t.Fatalf("execList() error: %v", err)
 	}
@@ -116,7 +116,7 @@ func TestExecList_truncatesLongTitle(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	err := execList(fetcher, &buf, false)
+	err := execList(fetcher, &buf, false, "created")
 	if err != nil {
 		t.Fatalf("execList() error: %v", err)
 	}
@@ -138,7 +138,7 @@ func TestExecList_emptyYearAndAuthor(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	err := execList(fetcher, &buf, false)
+	err := execList(fetcher, &buf, false, "created")
 	if err != nil {
 		t.Fatalf("execList() error: %v", err)
 	}
@@ -162,7 +162,7 @@ func TestExecList_fetchError(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	err := execList(fetcher, &buf, false)
+	err := execList(fetcher, &buf, false, "created")
 	if err == nil {
 		t.Fatal("execList() expected error")
 	}
@@ -171,11 +171,63 @@ func TestExecList_fetchError(t *testing.T) {
 	}
 }
 
+func TestExecList_sortsByCreatedDescending(t *testing.T) {
+	fetcher := &mockLibraryFetcher{
+		items: []api.LibraryItem{
+			{ID: "oldest", Title: "Oldest Paper", Created: 1000000},
+			{ID: "newest", Title: "Newest Paper", Created: 3000000},
+			{ID: "middle", Title: "Middle Paper", Created: 2000000},
+		},
+	}
+
+	var buf bytes.Buffer
+	err := execList(fetcher, &buf, false, "created")
+	if err != nil {
+		t.Fatalf("execList() error: %v", err)
+	}
+
+	output := buf.String()
+	newestIdx := strings.Index(output, "newest")
+	middleIdx := strings.Index(output, "middle")
+	oldestIdx := strings.Index(output, "oldest")
+
+	if newestIdx > middleIdx || middleIdx > oldestIdx {
+		t.Errorf("items should be sorted by created descending: newest=%d, middle=%d, oldest=%d",
+			newestIdx, middleIdx, oldestIdx)
+	}
+}
+
+func TestExecList_sortNonePreservesOrder(t *testing.T) {
+	fetcher := &mockLibraryFetcher{
+		items: []api.LibraryItem{
+			{ID: "first", Title: "First Paper", Created: 3000000},
+			{ID: "second", Title: "Second Paper", Created: 1000000},
+			{ID: "third", Title: "Third Paper", Created: 2000000},
+		},
+	}
+
+	var buf bytes.Buffer
+	err := execList(fetcher, &buf, false, "none")
+	if err != nil {
+		t.Fatalf("execList() error: %v", err)
+	}
+
+	output := buf.String()
+	firstIdx := strings.Index(output, "first")
+	secondIdx := strings.Index(output, "second")
+	thirdIdx := strings.Index(output, "third")
+
+	if firstIdx > secondIdx || secondIdx > thirdIdx {
+		t.Errorf("items should preserve original order with sort=none: first=%d, second=%d, third=%d",
+			firstIdx, secondIdx, thirdIdx)
+	}
+}
+
 func TestExecList_header(t *testing.T) {
 	fetcher := &mockLibraryFetcher{items: []api.LibraryItem{}}
 
 	var buf bytes.Buffer
-	err := execList(fetcher, &buf, false)
+	err := execList(fetcher, &buf, false, "created")
 	if err != nil {
 		t.Fatalf("execList() error: %v", err)
 	}
