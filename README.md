@@ -115,6 +115,54 @@ paperpile note set <item_id> <text>...
 
 Sets or replaces the note on a library item. Multiple arguments are joined with spaces.
 
+### `label list` - List all labels
+
+```bash
+paperpile label list
+```
+
+Lists all labels in your Paperpile library with their IDs, names, and item counts.
+
+### `label get` - Get labels of a library item
+
+```bash
+paperpile label get <item_id>
+```
+
+Prints the label names assigned to the item. If no labels are assigned, prints `(no labels)`.
+
+### `label create` - Create a new label
+
+```bash
+paperpile label create <label_name>
+```
+
+Creates a new label in your Paperpile library.
+
+### `label unassign` - Remove a label from a library item
+
+```bash
+paperpile label unassign <item_id> <label_name>
+```
+
+Removes a label from a library item.
+
+### `label assign` - Assign a label to a library item
+
+```bash
+paperpile label assign <item_id> <label_name>
+```
+
+Assigns an existing label to a library item.
+
+### `label delete` - Delete a label
+
+```bash
+paperpile label delete <label_name>
+```
+
+Deletes a label from your Paperpile library.
+
 ## Configuration
 
 Session credentials are stored in `~/.config/paperpile/config.yaml`.

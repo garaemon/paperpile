@@ -32,7 +32,7 @@ func TestExecNoteGet_success(t *testing.T) {
 	getter := &mockNoteGetter{note: "My research note"}
 
 	var buf bytes.Buffer
-	err := execNoteGet(getter, &buf, "item-abc")
+	err := execNoteGet(getter, &buf, "item-abc", false)
 	if err != nil {
 		t.Fatalf("execNoteGet() error: %v", err)
 	}
@@ -47,7 +47,7 @@ func TestExecNoteGet_emptyNote(t *testing.T) {
 	getter := &mockNoteGetter{note: ""}
 
 	var buf bytes.Buffer
-	err := execNoteGet(getter, &buf, "item-abc")
+	err := execNoteGet(getter, &buf, "item-abc", false)
 	if err != nil {
 		t.Fatalf("execNoteGet() error: %v", err)
 	}
@@ -62,7 +62,7 @@ func TestExecNoteGet_error(t *testing.T) {
 	getter := &mockNoteGetter{err: errors.New("not found")}
 
 	var buf bytes.Buffer
-	err := execNoteGet(getter, &buf, "item-abc")
+	err := execNoteGet(getter, &buf, "item-abc", false)
 	if err == nil {
 		t.Fatal("execNoteGet() expected error")
 	}
@@ -75,7 +75,7 @@ func TestExecNoteSet_success(t *testing.T) {
 	updater := &mockNoteUpdater{}
 
 	var buf bytes.Buffer
-	err := execNoteSet(updater, &buf, "item-abc", "New note text")
+	err := execNoteSet(updater, &buf, "item-abc", "New note text", false)
 	if err != nil {
 		t.Fatalf("execNoteSet() error: %v", err)
 	}
@@ -93,11 +93,40 @@ func TestExecNoteSet_success(t *testing.T) {
 	}
 }
 
+func TestExecNoteGet_markdown(t *testing.T) {
+	getter := &mockNoteGetter{note: "<p>This is <b>bold</b> text</p>"}
+
+	var buf bytes.Buffer
+	err := execNoteGet(getter, &buf, "item-abc", true)
+	if err != nil {
+		t.Fatalf("execNoteGet() error: %v", err)
+	}
+
+	output := buf.String()
+	if !strings.Contains(output, "**bold**") {
+		t.Errorf("output = %q, want to contain **bold**", output)
+	}
+}
+
+func TestExecNoteSet_markdown(t *testing.T) {
+	updater := &mockNoteUpdater{}
+
+	var buf bytes.Buffer
+	err := execNoteSet(updater, &buf, "item-abc", "This is **bold** text", true)
+	if err != nil {
+		t.Fatalf("execNoteSet() error: %v", err)
+	}
+
+	if !strings.Contains(updater.updatedNote, "<strong>bold</strong>") {
+		t.Errorf("updatedNote = %q, want to contain <strong>bold</strong>", updater.updatedNote)
+	}
+}
+
 func TestExecNoteSet_error(t *testing.T) {
 	updater := &mockNoteUpdater{err: errors.New("sync failed")}
 
 	var buf bytes.Buffer
-	err := execNoteSet(updater, &buf, "item-abc", "Note text")
+	err := execNoteSet(updater, &buf, "item-abc", "Note text", false)
 	if err == nil {
 		t.Fatal("execNoteSet() expected error")
 	}

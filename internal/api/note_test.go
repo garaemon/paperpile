@@ -27,9 +27,16 @@ func TestUpdateNote_success(t *testing.T) {
 			t.Fatalf("failed to unmarshal body: %v", err)
 		}
 
+		resp := SyncResponse{
+			SyncStartTime: 1234567890.0,
+			SyncSession:   "session-1",
+		}
+		w.Header().Set("Content-Type", "application/json")
+
 		changes, ok := reqBody["clientChanges"].([]any)
 		if !ok || len(changes) == 0 {
-			t.Fatal("expected clientChanges to be non-empty")
+			json.NewEncoder(w).Encode(resp)
+			return
 		}
 
 		change := changes[0].(map[string]any)
@@ -51,11 +58,6 @@ func TestUpdateNote_success(t *testing.T) {
 			t.Errorf("notes = %v, want %q", data["note"], "This is a test note")
 		}
 
-		resp := SyncResponse{
-			SyncStartTime: 1234567890.0,
-			SyncSession:   "session-1",
-		}
-		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
 	}))
 	defer server.Close()

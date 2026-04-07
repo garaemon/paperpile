@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 	"text/tabwriter"
 
 	"github.com/garaemon/paperpile/internal/api"
@@ -12,9 +13,11 @@ import (
 )
 
 var listTrashed bool
+var listSort string
 
 func init() {
 	listCmd.Flags().BoolVar(&listTrashed, "trashed", false, "Include trashed items")
+	listCmd.Flags().StringVar(&listSort, "sort", "created", "Sort order: created (newest first) or none")
 	rootCmd.AddCommand(listCmd)
 }
 
@@ -26,13 +29,19 @@ var listCmd = &cobra.Command{
 
 func runList(cmd *cobra.Command, args []string) error {
 	client := api.NewClient(config.GetSession())
-	return execList(client, os.Stdout, listTrashed)
+	return execList(client, os.Stdout, listTrashed, listSort)
 }
 
-func execList(fetcher LibraryFetcher, out io.Writer, includeTrashed bool) error {
+func execList(fetcher LibraryFetcher, out io.Writer, includeTrashed bool, sortBy string) error {
 	items, err := fetcher.FetchLibrary()
 	if err != nil {
 		return fmt.Errorf("failed to fetch library: %w", err)
+	}
+
+	if sortBy == "created" {
+		sort.Slice(items, func(i, j int) bool {
+			return items[i].Created > items[j].Created
+		})
 	}
 
 	w := tabwriter.NewWriter(out, 0, 4, 2, ' ', 0)

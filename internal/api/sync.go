@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"time"
 )
 
 // syncPath is the path for the sync endpoint.
@@ -45,14 +44,34 @@ type SyncServerChange struct {
 	Attachment AttachmentInfo `json:"data"`
 }
 
+// fetchSyncStartTime retrieves the current server sync timestamp.
+func (c *Client) fetchSyncStartTime() (float64, error) {
+	resp, err := c.doSyncRequest(syncRequest{
+		SyncClientID: "paperpile",
+	})
+	if err != nil {
+		return 0, fmt.Errorf("failed to fetch sync start time: %w", err)
+	}
+	return resp.SyncStartTime, nil
+}
+
 // pushSyncChanges sends local changes to the server via the Sync API.
+// It first fetches the current server sync time, then sends changes with
+// that timestamp so the server does not overwrite them with stale data.
 func (c *Client) pushSyncChanges(changes []map[string]any) (*SyncResponse, error) {
-	reqBody := syncRequest{
-		SyncClientID:   "paperpile",
-		LastServerSync: float64(time.Now().Unix()),
-		ClientChanges:  changes,
+	syncStartTime, err := c.fetchSyncStartTime()
+	if err != nil {
+		return nil, err
 	}
 
+	return c.doSyncRequest(syncRequest{
+		SyncClientID:   "paperpile",
+		LastServerSync: syncStartTime,
+		ClientChanges:  changes,
+	})
+}
+
+func (c *Client) doSyncRequest(reqBody syncRequest) (*SyncResponse, error) {
 	jsonBody, err := json.Marshal(reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal sync request: %w", err)
@@ -72,13 +91,13 @@ func (c *Client) pushSyncChanges(changes []map[string]any) (*SyncResponse, error
 	}
 	defer resp.Body.Close()
 
+	respBody, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("API returned status %d: %s", resp.StatusCode, string(body))
+		return nil, fmt.Errorf("API returned status %d: %s", resp.StatusCode, string(respBody))
 	}
 
 	var syncResp SyncResponse
-	if err := json.NewDecoder(resp.Body).Decode(&syncResp); err != nil {
+	if err := json.Unmarshal(respBody, &syncResp); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 	return &syncResp, nil
