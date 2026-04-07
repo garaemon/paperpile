@@ -8,7 +8,7 @@ import (
 
 	"github.com/garaemon/paperpile/internal/api"
 	"github.com/garaemon/paperpile/internal/config"
-	"github.com/garaemon/paperpile/internal/convert"
+	"github.com/garaemon/paperpile/internal/markup"
 	"github.com/spf13/cobra"
 )
 
@@ -63,7 +63,7 @@ func execNoteGet(getter NoteGetter, out io.Writer, itemID string, markdown bool)
 		return nil
 	}
 	if markdown {
-		md, err := convert.HTMLToMarkdown(note)
+		md, err := markup.HTMLToMarkdown(note)
 		if err != nil {
 			return fmt.Errorf("failed to convert note to markdown: %w", err)
 		}
@@ -76,7 +76,7 @@ func execNoteGet(getter NoteGetter, out io.Writer, itemID string, markdown bool)
 
 func execNoteSet(updater NoteUpdater, out io.Writer, itemID, note string, markdown bool) error {
 	if markdown {
-		note = convert.MarkdownToHTML(note)
+		note = markup.MarkdownToHTML(note)
 	}
 	if err := updater.UpdateNote(itemID, note); err != nil {
 		return fmt.Errorf("failed to set note: %w", err)

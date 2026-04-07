@@ -1,6 +1,6 @@
-// Package convert provides HTML-to-Markdown and Markdown-to-HTML conversion
+// Package markup provides HTML-to-Markdown and Markdown-to-HTML conversion
 // for Paperpile note content.
-package convert
+package markup
 
 import (
 	"bytes"
