@@ -233,10 +233,18 @@ func TestDeleteLabel_success(t *testing.T) {
 				t.Errorf("id = %v, want %q", change["id"], "label-1")
 			}
 
+			fields, ok := change["fields"].([]any)
+			if !ok || len(fields) != 2 {
+				t.Errorf("fields = %v, want [trashed updated]", change["fields"])
+			}
+
 			data := change["data"].(map[string]any)
 			trashed, ok := data["trashed"].(float64)
 			if !ok || trashed != 1 {
 				t.Errorf("trashed = %v, want 1", data["trashed"])
+			}
+			if _, ok := data["updated"].(float64); !ok {
+				t.Errorf("updated should be a float64, got %T", data["updated"])
 			}
 
 			json.NewEncoder(w).Encode(resp)

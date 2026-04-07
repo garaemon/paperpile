@@ -84,9 +84,8 @@ func (c *Client) DeleteLabel(labelName string) error {
 			"action":      "update",
 			"id":          labelID,
 			"timestamp":   now,
-			"data": map[string]any{
-				"trashed": 1,
-			},
+			"fields":      []string{"trashed", "updated"},
+			"data":        map[string]any{"trashed": 1, "updated": now},
 		},
 	}
 
